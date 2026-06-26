@@ -24,7 +24,6 @@ kotlin {
 
     swiftPMDependencies {
         iosMinimumDeploymentTarget = "16.6"
-        discoverClangModulesImplicitly = false
 
         swiftPackage(
             url = url("https://github.com/firebase/firebase-ios-sdk.git"),
