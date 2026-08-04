@@ -1,6 +1,6 @@
 [versions]
 firebase = "12.13.0"
-kotlin = "2.3.21"
+kotlin = "2.4.10"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
