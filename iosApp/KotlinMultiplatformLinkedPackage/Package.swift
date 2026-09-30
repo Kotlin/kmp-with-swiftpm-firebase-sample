@@ -15,7 +15,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/firebase/firebase-ios-sdk.git",
-      from: "12.12.0"
+      from: "12.19.2"
     )
   ],
   targets: [
@@ -40,10 +40,6 @@ let package = Package(
         ),
         .product(
           name: "FirebaseAuth",
-          package: "firebase-ios-sdk"
-        ),
-        .product(
-          name: "FirebaseCore",
           package: "firebase-ios-sdk"
         ),
         .product(
