@@ -1,11 +1,9 @@
 package org.jetbrains.kotlin.firebase.sample
 
 /**
- * Interface representing a mockable implementation of the `FirebaseKMP` interface.
- * Designed to facilitate testing by providing a mechanism to reset mock data or state.
+ * Test double for [FirebaseKMP], used by tests and SwiftUI previews.
  *
- * Extends the `FirebaseKMP` interface, which provides core Firebase-related operations
- * like authentication, Firestore interactions, and analytics event logging.
+ * The properties control what the mock returns, and [reset] restores the defaults.
  */
 interface MockFirebaseKMP: FirebaseKMP {
     var simulateError: KMPError?
@@ -19,7 +17,14 @@ interface MockFirebaseKMP: FirebaseKMP {
 }
 
 /**
- * Interface for Firebase KMP operations
+ * Removes the listener it was returned for.
+ */
+fun interface AuthStateRegistration {
+    fun remove()
+}
+
+/**
+ * Firebase operations shared with the Swift app: auth, Firestore, Analytics and Messaging.
  */
 interface FirebaseKMP {
     /**
@@ -32,6 +37,13 @@ interface FirebaseKMP {
      * @return Boolean indicating if user is signed in
      */
     fun isUserSignedIn(): Boolean
+
+    /**
+     * Observe the signed-in user. [listener] is called right away with the current user, and again whenever
+     * the user signs in or out, including when Firebase signs the user out on its own (for example after the
+     * account is disabled). Calls arrive on the main thread.
+     */
+    fun addAuthStateListener(listener: (FirebaseUser?) -> Unit): AuthStateRegistration
 
     /**
      * Sign in with email and password

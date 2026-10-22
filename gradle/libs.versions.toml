@@ -1,8 +1,8 @@
 [versions]
-firebase = "12.13.0"
-kotlin = "2.3.21"
+kotlin = "2.5.0-Beta2"
+firebase = "13.1.0"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+
 

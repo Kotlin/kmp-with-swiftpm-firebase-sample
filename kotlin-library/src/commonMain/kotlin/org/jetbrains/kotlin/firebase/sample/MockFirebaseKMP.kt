@@ -6,10 +6,16 @@ internal class MockFirebaseKMPImpl : MockFirebaseKMP {
     // --- Configuration properties to control mock behavior ---
     override var simulateError: KMPError? = null
     override var signedInUserOverride: FirebaseUser? = null
+        set(value) {
+            field = value
+            authStateListeners.toList().forEach { it(value) }
+        }
     override var nextUserToReturnOnAuth: FirebaseUser? = null // Specify the exact user for next signIn/signUp success
     override var userDatabase: MutableMap<String, Map<String, Any>> = mutableMapOf()
     override var shouldSignOutSucceed: Boolean = true
     override var autoSignInOnAuthSuccess: Boolean = true
+
+    private val authStateListeners = mutableListOf<(FirebaseUser?) -> Unit>()
 
     // --- Captured interactions for verification ---
     private val _loggedEvents = mutableListOf<Pair<String, Map<String, Any>?>>()
@@ -52,6 +58,12 @@ internal class MockFirebaseKMPImpl : MockFirebaseKMP {
         val isSignedIn = signedInUserOverride != null
         println("MockFirebaseKMP: isUserSignedIn() called, returning $isSignedIn.")
         return isSignedIn
+    }
+
+    override fun addAuthStateListener(listener: (FirebaseUser?) -> Unit): AuthStateRegistration {
+        authStateListeners += listener
+        listener(signedInUserOverride)
+        return AuthStateRegistration { authStateListeners -= listener }
     }
 
     override fun signIn(email: String, password: String, completion: (FirebaseUser?, KMPError?) -> Unit) {

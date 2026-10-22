@@ -8,12 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ios:
-    name: Build iOS simulator app
+  build-xcode:
+    name: Build iOS and macOS apps
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Firebase 13 needs Xcode 26.2 or later; the runner's default Xcode may be older.
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1.7.0
+        with:
+          xcode-version: latest-stable
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -24,19 +30,23 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5.0.0
 
-      - name: Generate dummy framework
-        run: ./gradlew :kotlin-library:generateDummyFramework
-
-      - name: Install CocoaPods dependencies
-        run: cd iosApp && pod install
-
-      - name: Build iOS simulator app
+      - name: Build for iOS simulator
         run: |
           xcodebuild build \
-          -workspace iosApp/iosApp.xcworkspace \
+          -project appleApp/appleApp.xcodeproj \
           -configuration Debug \
-          -scheme iosApp \
+          -scheme appleApp \
           -sdk iphonesimulator \
           -arch arm64 \
+          -derivedDataPath ./build \
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Build for macOS
+        run: |
+          xcodebuild build \
+          -project appleApp/appleApp.xcodeproj \
+          -configuration Debug \
+          -scheme appleApp \
+          -destination 'platform=macOS,arch=arm64' \
           -derivedDataPath ./build \
           CODE_SIGNING_ALLOWED=NO

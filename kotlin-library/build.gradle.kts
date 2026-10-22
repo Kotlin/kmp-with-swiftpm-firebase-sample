@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinCocoapods)
 }
 
 group = "org.jetbrains.kotlin.firebase.sample"
@@ -11,46 +16,57 @@ val firebaseVersion = libs.versions.firebase.get()
 kotlin {
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
-    cocoapods {
-        summary = "Kotlin sample project with CocoaPods Firebase dependencies"
-        homepage = "https://github.com/Kotlin/kotlin-with-cocoapods-firebase-sample"
+    swiftPMDependencies {
+        // Match IPHONEOS_DEPLOYMENT_TARGET and MACOSX_DEPLOYMENT_TARGET of the Xcode app.
+        iosMinimumDeploymentTarget = "18.0"
+        macosMinimumDeploymentTarget = "15.0"
 
-        podfile = project.file("../iosApp/Podfile")
+        // Only the products used by this module are declared. Transitive Clang modules
+        // (FirebaseCore, FirebaseInstallations, ...) are discovered and imported automatically.
+        // Products that Firebase ships for iOS only are limited to iOS, and their samples live in iosMain.
+        swiftPackage(
+            url = url("https://github.com/firebase/firebase-ios-sdk.git"),
+            version = from(firebaseVersion),
+            products = listOf(
+                product("FirebaseAnalytics"),
+                product("FirebaseAppCheck"),
+                product("FirebaseAppDistribution-Beta", platforms = setOf(iOS())),
+                product("FirebaseAuth"),
+                product("FirebaseCrashlytics"),
+                product("FirebaseDatabase"),
+                product("FirebaseFirestore"),
+                product("FirebaseFunctions"),
+                product("FirebaseInAppMessaging-Beta", platforms = setOf(iOS())),
+                product("FirebaseMessaging"),
+                product("FirebasePerformance", platforms = setOf(iOS())),
+                product("FirebaseRemoteConfig"),
+                product("FirebaseStorage"),
+            ),
+        )
 
-        ios.deploymentTarget = "16.6"
-        osx.deploymentTarget = "13.5"
-        tvos.deploymentTarget = "16.6"
-        watchos.deploymentTarget = "9.6"
+        // FirebaseAILogic is a pure-Swift SDK, which cinterop can't import. This local package
+        // wraps the needed APIs in @objc classes so they become visible to Kotlin.
+        localSwiftPackage(
+            directory = layout.projectDirectory.dir("FirebaseAIBridge"),
+            products = listOf("FirebaseAIBridge"),
+        )
+    }
 
-        pod("FirebaseABTesting", firebaseVersion)
-        pod("FirebaseAnalytics", firebaseVersion)
-        pod("FirebaseAppCheck", firebaseVersion)
-        pod("FirebaseAppDistribution", "$firebaseVersion-beta")
-        pod("FirebaseAuth", firebaseVersion)
-        pod("FirebaseCore", firebaseVersion)
-        pod("FirebaseCrashlytics", firebaseVersion)
-        pod("FirebaseDatabase", firebaseVersion)
-        pod("FirebaseFirestore", firebaseVersion)
-        pod("FirebaseFirestoreInternal", firebaseVersion)
-        pod("FirebaseInAppMessaging", "$firebaseVersion-beta")
-        pod("FirebaseInstallations", firebaseVersion)
-        pod("FirebaseMessaging", firebaseVersion)
-        pod("FirebasePerformance", firebaseVersion)
-        pod("FirebaseRemoteConfig", firebaseVersion)
-        pod("FirebaseStorage", firebaseVersion)
-
-        framework {
-            baseName = "KotlinLibrary"
-            isStatic = true
+    sourceSets.configureEach {
+        languageSettings {
+            optIn("kotlinx.cinterop.ExperimentalForeignApi")
         }
     }
 
-    sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlinx.cinterop.ExperimentalForeignApi")
+    targets
+        .withType<KotlinNativeTarget>()
+        .matching { it.konanTarget.family.isAppleFamily }
+        .configureEach {
+            binaries.framework {
+                baseName = "KotlinLibrary"
+                isStatic = true
             }
         }
-    }
 }

@@ -1,0 +1,91 @@
+// swift-tools-version: 5.9
+import PackageDescription
+let package = Package(
+  name: "KotlinMultiplatformLinkedPackage",
+  platforms: [
+    .iOS("18.0"),
+    .macOS("15.0")
+  ],
+  products: [
+    .library(
+      name: "KotlinMultiplatformLinkedPackage",
+      type: .none,
+      targets: ["KotlinMultiplatformLinkedPackage"]
+    )
+  ],
+  dependencies: [
+    .package(
+      url: "https://github.com/firebase/firebase-ios-sdk.git",
+      from: "13.1.0"
+    ),
+    .package(
+      path: "../../kotlin-library/FirebaseAIBridge"
+    )
+  ],
+  targets: [
+    .target(
+      name: "KotlinMultiplatformLinkedPackage",
+      dependencies: [
+        .product(
+          name: "FirebaseAnalytics",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseAppCheck",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseAppDistribution-Beta",
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
+        ),
+        .product(
+          name: "FirebaseAuth",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseCrashlytics",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseDatabase",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseFirestore",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseFunctions",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseInAppMessaging-Beta",
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
+        ),
+        .product(
+          name: "FirebaseMessaging",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebasePerformance",
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
+        ),
+        .product(
+          name: "FirebaseRemoteConfig",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseStorage",
+          package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseAIBridge",
+          package: "FirebaseAIBridge"
+        )
+      ]
+    )
+  ]
+)
