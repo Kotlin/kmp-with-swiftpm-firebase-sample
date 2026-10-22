@@ -3,7 +3,8 @@ import PackageDescription
 let package = Package(
   name: "KotlinMultiplatformLinkedPackage",
   platforms: [
-    .iOS("18.0")
+    .iOS("18.0"),
+    .macOS("15.0")
   ],
   products: [
     .library(
@@ -35,7 +36,8 @@ let package = Package(
         ),
         .product(
           name: "FirebaseAppDistribution-Beta",
-          package: "firebase-ios-sdk"
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
         ),
         .product(
           name: "FirebaseAuth",
@@ -59,7 +61,8 @@ let package = Package(
         ),
         .product(
           name: "FirebaseInAppMessaging-Beta",
-          package: "firebase-ios-sdk"
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
         ),
         .product(
           name: "FirebaseMessaging",
@@ -67,7 +70,8 @@ let package = Package(
         ),
         .product(
           name: "FirebasePerformance",
-          package: "firebase-ios-sdk"
+          package: "firebase-ios-sdk",
+          condition: .when(platforms: [.iOS])
         ),
         .product(
           name: "FirebaseRemoteConfig",

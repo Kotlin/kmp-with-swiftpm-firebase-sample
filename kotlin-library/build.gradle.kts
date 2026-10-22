@@ -16,28 +16,31 @@ val firebaseVersion = libs.versions.firebase.get()
 kotlin {
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
     swiftPMDependencies {
-        // Matches IPHONEOS_DEPLOYMENT_TARGET of iosApp.
+        // Match IPHONEOS_DEPLOYMENT_TARGET and MACOSX_DEPLOYMENT_TARGET of the Xcode app.
         iosMinimumDeploymentTarget = "18.0"
+        macosMinimumDeploymentTarget = "15.0"
 
         // Only the products used by this module are declared. Transitive Clang modules
         // (FirebaseCore, FirebaseInstallations, ...) are discovered and imported automatically.
+        // Products that Firebase ships for iOS only are limited to iOS, and their samples live in iosMain.
         swiftPackage(
             url = url("https://github.com/firebase/firebase-ios-sdk.git"),
             version = from(firebaseVersion),
             products = listOf(
                 product("FirebaseAnalytics"),
                 product("FirebaseAppCheck"),
-                product("FirebaseAppDistribution-Beta"),
+                product("FirebaseAppDistribution-Beta", platforms = setOf(iOS())),
                 product("FirebaseAuth"),
                 product("FirebaseCrashlytics"),
                 product("FirebaseDatabase"),
                 product("FirebaseFirestore"),
                 product("FirebaseFunctions"),
-                product("FirebaseInAppMessaging-Beta"),
+                product("FirebaseInAppMessaging-Beta", platforms = setOf(iOS())),
                 product("FirebaseMessaging"),
-                product("FirebasePerformance"),
+                product("FirebasePerformance", platforms = setOf(iOS())),
                 product("FirebaseRemoteConfig"),
                 product("FirebaseStorage"),
             ),

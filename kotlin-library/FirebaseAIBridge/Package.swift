@@ -8,6 +8,7 @@ let package = Package(
     name: "FirebaseAIBridge",
     platforms: [
         .iOS("18.0"),
+        .macOS("15.0"),
     ],
     products: [
         .library(name: "FirebaseAIBridge", targets: ["FirebaseAIBridge"]),
