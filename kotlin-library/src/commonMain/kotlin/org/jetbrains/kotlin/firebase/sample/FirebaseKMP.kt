@@ -17,6 +17,13 @@ interface MockFirebaseKMP: FirebaseKMP {
 }
 
 /**
+ * Removes the listener it was returned for.
+ */
+fun interface AuthStateRegistration {
+    fun remove()
+}
+
+/**
  * Firebase operations shared with the Swift app: auth, Firestore, Analytics and Messaging.
  */
 interface FirebaseKMP {
@@ -30,6 +37,13 @@ interface FirebaseKMP {
      * @return Boolean indicating if user is signed in
      */
     fun isUserSignedIn(): Boolean
+
+    /**
+     * Observe the signed-in user. [listener] is called right away with the current user, and again whenever
+     * the user signs in or out, including when Firebase signs the user out on its own (for example after the
+     * account is disabled). Calls arrive on the main thread.
+     */
+    fun addAuthStateListener(listener: (FirebaseUser?) -> Unit): AuthStateRegistration
 
     /**
      * Sign in with email and password

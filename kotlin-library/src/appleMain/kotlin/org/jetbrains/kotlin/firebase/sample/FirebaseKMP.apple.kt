@@ -28,6 +28,9 @@ internal class FirebaseKMPImpl : FirebaseKMP {
 
     override fun isUserSignedIn(): Boolean = auth.isUserSignedIn()
 
+    override fun addAuthStateListener(listener: (FirebaseUser?) -> Unit): AuthStateRegistration =
+        auth.addAuthStateListener(listener)
+
     override fun signIn(email: String, password: String, completion: (FirebaseUser?, KMPError?) -> Unit) =
         auth.signIn(email, password, completion)
 

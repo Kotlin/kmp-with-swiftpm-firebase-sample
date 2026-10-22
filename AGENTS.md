@@ -80,6 +80,8 @@ names are easy to guess wrong:
 - The project uses buildable folders, so new Swift files in `appleApp/appleApp/` are picked up without editing
   `project.pbxproj`.
 - `FirebaseService` turns the Kotlin callbacks into `async` functions. Kotlin completion blocks are `@Sendable` in Swift.
+- `FirebaseService.currentUser` follows `FirebaseKMP.addAuthStateListener`. Don't set it from auth actions; the
+  listener also reports sign-outs that Firebase makes on its own.
 - Previews use `FirebaseService.preview(...)`, which is backed by the Kotlin mock. Previews never call Firebase.
 
 ## Writing style

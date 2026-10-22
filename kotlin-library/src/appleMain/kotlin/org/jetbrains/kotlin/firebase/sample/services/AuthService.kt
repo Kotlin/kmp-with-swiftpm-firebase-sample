@@ -8,6 +8,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import org.jetbrains.kotlin.firebase.sample.AuthStateRegistration
 import org.jetbrains.kotlin.firebase.sample.FirebaseUser
 import org.jetbrains.kotlin.firebase.sample.KMPError
 import org.jetbrains.kotlin.firebase.sample.toKMPError
@@ -21,6 +22,11 @@ internal class AuthService {
 
     fun isUserSignedIn(): Boolean {
         return firebaseAuth.currentUser() != null
+    }
+
+    fun addAuthStateListener(listener: (FirebaseUser?) -> Unit): AuthStateRegistration {
+        val handle = firebaseAuth.addAuthStateDidChangeListener { _, user -> listener(user?.toKMPUser()) }
+        return AuthStateRegistration { firebaseAuth.removeAuthStateDidChangeListener(handle) }
     }
 
     fun signIn(email: String, password: String, completion: (FirebaseUser?, KMPError?) -> Unit) {

@@ -56,13 +56,20 @@ final class FirebaseService {
     /// A profile from sign-up that couldn't be written yet. `fetchProfile()` retries the write.
     @ObservationIgnored private var unsavedProfile: UserProfile?
 
+    /// The latest user reported by Firebase. `currentUser` follows it, except during sign-in and sign-up.
+    @ObservationIgnored private var authUser: KMPFirebaseUser?
+    @ObservationIgnored private var authStateRegistration: AuthStateRegistration?
+
     init(kmp: FirebaseKMP) {
         self.kmp = kmp
     }
 
     func configure() {
         kmp.configure()
-        refreshAuthState()
+        authStateRegistration = kmp.addAuthStateListener { [weak self] user in
+            // FirebaseKMP calls auth state listeners on the main thread.
+            MainActor.assumeIsolated { self?.authStateChanged(to: user) }
+        }
     }
 
     // MARK: - Authentication
@@ -100,12 +107,7 @@ final class FirebaseService {
     /// Returns `false` when Firebase couldn't sign the user out.
     func signOut() -> Bool {
         kmp.logEvent(name: "sign_out", parameters: nil)
-        let signedOut = kmp.signOut()
-        if signedOut {
-            unsavedProfile = nil
-        }
-        refreshAuthState()
-        return signedOut
+        return kmp.signOut()
     }
 
     // MARK: - Firestore
@@ -130,14 +132,14 @@ final class FirebaseService {
 
     /// Runs an auth flow with shared loading/error handling.
     ///
-    /// The published auth state is refreshed only once the whole flow finishes, so the UI doesn't
-    /// switch to the profile screen while sign-up is still writing the profile document.
+    /// `currentUser` is updated only once the whole flow finishes, so the UI doesn't switch to the
+    /// profile screen while sign-up is still writing the profile document.
     private func performAuthAction(failureEvent: String, _ action: () async throws -> Void) async {
         isLoading = true
         errorMessage = nil
         defer {
             isLoading = false
-            refreshAuthState()
+            currentUser = authUser
         }
 
         do {
@@ -148,8 +150,14 @@ final class FirebaseService {
         }
     }
 
-    private func refreshAuthState() {
-        currentUser = kmp.isUserSignedIn() ? kmp.getCurrentUser() : nil
+    private func authStateChanged(to user: KMPFirebaseUser?) {
+        authUser = user
+        if user == nil {
+            unsavedProfile = nil
+        }
+        if !isLoading {
+            currentUser = user
+        }
     }
 
     private func bridge<Value>(
