@@ -21,7 +21,7 @@ public final class GenerativeModelBridge: NSObject, Sendable {
 
     /// Generates a text response for a single prompt.
     @objc public func generateContent(_ prompt: String) async throws -> String {
-        try await model.generateContent(prompt).text ?? ""
+        try await model.generateContent(prompt).requireText()
     }
 
     /// Counts the tokens the prompt would consume.
@@ -46,6 +46,24 @@ public final class ChatBridge: NSObject, Sendable {
 
     /// Sends a message and returns the model's reply.
     @objc public func sendMessage(_ message: String) async throws -> String {
-        try await chat.sendMessage(message).text ?? ""
+        try await chat.sendMessage(message).requireText()
+    }
+}
+
+/// Reaches Kotlin as an `NSError` with this description.
+enum BridgeError: LocalizedError {
+    case noText
+
+    var errorDescription: String? {
+        switch self {
+        case .noText: "The response has no text, for example because a safety filter blocked it."
+        }
+    }
+}
+
+private extension GenerateContentResponse {
+    func requireText() throws -> String {
+        guard let text else { throw BridgeError.noText }
+        return text
     }
 }
