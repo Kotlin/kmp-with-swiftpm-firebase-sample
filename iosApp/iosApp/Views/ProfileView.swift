@@ -17,7 +17,7 @@ struct ProfileView: View {
             content
                 .navigationTitle("Profile")
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .primaryAction) {
                         Button("Sign Out", role: .destructive) {
                             firebase.signOut()
                         }

@@ -53,10 +53,7 @@ private struct LoginForm: View {
         Form {
             Section {
                 TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                    .emailInput()
                     .focused($focusedField, equals: .email)
                     .submitLabel(.next)
                     .onSubmit { focusedField = .password }
@@ -75,6 +72,7 @@ private struct LoginForm: View {
                     .disabled(!canSubmit)
             }
         }
+        .formStyle(.grouped)
     }
 
     private func submit() {
@@ -112,10 +110,7 @@ private struct RegistrationForm: View {
         Form {
             Section {
                 TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                    .emailInput()
                     .focused($focusedField, equals: .email)
                     .submitLabel(.next)
                     .onSubmit { focusedField = .displayName }
@@ -148,12 +143,27 @@ private struct RegistrationForm: View {
                     .disabled(!canSubmit)
             }
         }
+        .formStyle(.grouped)
     }
 
     private func submit() {
         guard canSubmit else { return }
         focusedField = nil
         Task { await firebase.signUp(email: email, password: password, displayName: displayName) }
+    }
+}
+
+private extension View {
+    func emailInput() -> some View {
+        #if os(iOS)
+        textContentType(.emailAddress)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+        #else
+        textContentType(.emailAddress)
+            .autocorrectionDisabled()
+        #endif
     }
 }
 
