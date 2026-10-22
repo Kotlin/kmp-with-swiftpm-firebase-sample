@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "KotlinMultiplatformLinkedPackage",
   platforms: [
-    .iOS("16.6")
+    .iOS("18.0")
   ],
   products: [
     .library(

@@ -18,7 +18,8 @@ kotlin {
     iosSimulatorArm64()
 
     swiftPMDependencies {
-        iosMinimumDeploymentTarget = "16.6"
+        // Matches IPHONEOS_DEPLOYMENT_TARGET of iosApp.
+        iosMinimumDeploymentTarget = "18.0"
 
         swiftPackage(
             url = url("https://github.com/firebase/firebase-ios-sdk.git"),
