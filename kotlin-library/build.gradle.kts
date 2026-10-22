@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -12,15 +14,8 @@ version = "1.0-SNAPSHOT"
 val firebaseVersion = libs.versions.firebase.get()
 
 kotlin {
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "KotlinLibrary"
-            isStatic = true
-        }
-    }
+    iosArm64()
+    iosSimulatorArm64()
 
     swiftPMDependencies {
         iosMinimumDeploymentTarget = "16.6"
@@ -49,10 +44,19 @@ kotlin {
         )
     }
 
-
     sourceSets.configureEach {
         languageSettings {
             optIn("kotlinx.cinterop.ExperimentalForeignApi")
         }
     }
+
+    targets
+        .withType<KotlinNativeTarget>()
+        .matching { it.konanTarget.family.isAppleFamily }
+        .configureEach {
+            binaries.framework {
+                baseName = "KotlinLibrary"
+                isStatic = true
+            }
+        }
 }
