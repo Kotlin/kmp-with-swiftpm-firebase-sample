@@ -21,11 +21,12 @@ kotlin {
         // Matches IPHONEOS_DEPLOYMENT_TARGET of iosApp.
         iosMinimumDeploymentTarget = "18.0"
 
+        // Only the products used by this module are declared. Transitive Clang modules
+        // (FirebaseCore, FirebaseInstallations, ...) are discovered and imported automatically.
         swiftPackage(
             url = url("https://github.com/firebase/firebase-ios-sdk.git"),
             version = from(firebaseVersion),
             products = listOf(
-                product("FirebaseAI"),
                 product("FirebaseAnalytics"),
                 product("FirebaseAppCheck"),
                 product("FirebaseAppDistribution-Beta"),
@@ -35,9 +36,7 @@ kotlin {
                 product("FirebaseFirestore"),
                 product("FirebaseFunctions"),
                 product("FirebaseInAppMessaging-Beta"),
-                product("FirebaseInstallations"),
                 product("FirebaseMessaging"),
-                product("FirebaseMLModelDownloader"),
                 product("FirebasePerformance"),
                 product("FirebaseRemoteConfig"),
                 product("FirebaseStorage"),
