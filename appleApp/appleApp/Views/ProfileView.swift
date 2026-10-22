@@ -11,6 +11,7 @@ struct ProfileView: View {
 
     @Environment(FirebaseService.self) private var firebase
     @State private var state = LoadState.loading
+    @State private var signOutFailed = false
 
     var body: some View {
         NavigationStack {
@@ -19,9 +20,14 @@ struct ProfileView: View {
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button("Sign Out", role: .destructive) {
-                            firebase.signOut()
+                            signOutFailed = !firebase.signOut()
                         }
                     }
+                }
+                .alert("Couldn't Sign Out", isPresented: $signOutFailed) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Please try again.")
                 }
         }
         .task(id: firebase.currentUserID) {

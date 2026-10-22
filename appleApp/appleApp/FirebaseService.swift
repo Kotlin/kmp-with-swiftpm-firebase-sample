@@ -97,11 +97,15 @@ final class FirebaseService {
         }
     }
 
-    func signOut() {
+    /// Returns `false` when Firebase couldn't sign the user out.
+    func signOut() -> Bool {
         kmp.logEvent(name: "sign_out", parameters: nil)
-        errorMessage = kmp.signOut() ? nil : "Couldn't sign out. Please try again."
-        unsavedProfile = nil
+        let signedOut = kmp.signOut()
+        if signedOut {
+            unsavedProfile = nil
+        }
         refreshAuthState()
+        return signedOut
     }
 
     // MARK: - Firestore
