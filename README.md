@@ -1,7 +1,7 @@
 [![official project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 # SwiftUI Firebase KMP Sample
 
-An iOS app with a SwiftUI frontend and a Kotlin Multiplatform library that talks to Firebase.
+An iOS and macOS app with a SwiftUI frontend and a Kotlin Multiplatform library that talks to Firebase.
 The Kotlin library gets the Firebase iOS SDK through the Kotlin Gradle Plugin's SwiftPM import (`swiftPMDependencies {}`),
 and both the library and the SwiftUI previews can run against a mock instead of Firebase.
 
@@ -16,14 +16,16 @@ Firebase Analytics.
   transitive modules such as `FirebaseCore` or `FirebaseInstallations`; the plugin imports them automatically.
 * `FirebaseKMP` is the API the Swift app calls. `FirebaseKMPImpl` implements it with Firebase, and `MockFirebaseKMPImpl`
   implements `MockFirebaseKMP` for tests and previews.
-* `iosMain/.../samples` has one sample per Firebase product: App Check, App Distribution, A/B Testing, Crashlytics,
-  Realtime Database, Cloud Functions, In-App Messaging, Installations, Performance, Remote Config, Storage, and
-  Firebase AI Logic.
+* The library targets iOS and macOS, so most code lives in `appleMain`. `appleMain/.../samples` has one sample per
+  Firebase product: App Check, A/B Testing, Crashlytics, Realtime Database, Cloud Functions, Installations,
+  Remote Config, Storage, and Firebase AI Logic. App Distribution, In-App Messaging and Performance exist only for
+  iOS, so their products are limited to iOS in `build.gradle.kts` and their samples are in `iosMain`.
 * `FirebaseAIBridge` is a local Swift package that wraps the Swift-only `FirebaseAILogic` SDK in `@objc` classes.
   SwiftPM import uses cinterop, which only sees Objective-C compatible declarations, so a wrapper like this is how
   Kotlin code can call a Swift-only library. The module adds it with `localSwiftPackage(...)`.
 
-`appleApp` is the SwiftUI app. It requires iOS 18.
+`appleApp` is the SwiftUI app. One Xcode target builds it for iPhone and iPad (iOS 18) and for Mac (macOS 15).
+The bundle ID ends in `.iosApp` because it has to match the app registered in `GoogleService-Info.plist`.
 
 * `FirebaseService.swift` is an `@Observable` model that turns the callback-based Kotlin API into `async` functions.
 * `Views/` has the login and registration screen (`AuthView`) and the profile screen (`ProfileView`).
@@ -35,8 +37,9 @@ Firebase Analytics.
 1. Install Xcode 26.2 or later (Firebase 13 requires it) and IntelliJ IDEA or Android Studio. You need a Mac.
 2. Create a Firebase project, register an iOS app, and put its `GoogleService-Info.plist` in `appleApp/appleApp`.
    Enable Email/Password sign-in and set up Firestore security rules.
-3. Open `appleApp/appleApp.xcodeproj` in Xcode and run the app. The *Compile Kotlin Framework* build phase builds the
-   Kotlin library with `./gradlew :kotlin-library:embedAndSignAppleFrameworkForXcode`.
+3. Open `appleApp/appleApp.xcodeproj` in Xcode, pick an iOS or macOS destination, and run the app.
+   The *Compile Kotlin Framework* build phase builds the Kotlin library with
+   `./gradlew :kotlin-library:embedAndSignAppleFrameworkForXcode`.
 
 ## Changing SwiftPM dependencies
 
