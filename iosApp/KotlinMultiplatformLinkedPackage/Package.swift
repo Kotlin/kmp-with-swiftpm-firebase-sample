@@ -16,6 +16,9 @@ let package = Package(
     .package(
       url: "https://github.com/firebase/firebase-ios-sdk.git",
       from: "13.1.0"
+    ),
+    .package(
+      path: "../../kotlin-library/FirebaseAIBridge"
     )
   ],
   targets: [
@@ -73,6 +76,10 @@ let package = Package(
         .product(
           name: "FirebaseStorage",
           package: "firebase-ios-sdk"
+        ),
+        .product(
+          name: "FirebaseAIBridge",
+          package: "FirebaseAIBridge"
         )
       ]
     )

@@ -42,6 +42,13 @@ kotlin {
                 product("FirebaseStorage"),
             ),
         )
+
+        // FirebaseAILogic is a pure-Swift SDK, which cinterop can't import. This local package
+        // wraps the needed APIs in @objc classes so they become visible to Kotlin.
+        localSwiftPackage(
+            directory = layout.projectDirectory.dir("FirebaseAIBridge"),
+            products = listOf("FirebaseAIBridge"),
+        )
     }
 
     sourceSets.configureEach {

@@ -21,6 +21,9 @@ captures
 .build/
 .swiftpm/
 
+# Local Swift packages are libraries: their lock is owned by the consumer
+kotlin-library/FirebaseAIBridge/Package.resolved
+
 # SwiftPM import (KGP): commit only the lock file; the synthetic package is regenerated
 # on every build and the checkout is ignored by the plugin's own .gitignore
 .swiftpm-locks/*/swiftImport/*
