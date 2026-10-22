@@ -8,12 +8,9 @@ import org.jetbrains.kotlin.firebase.sample.toKMPError
 /**
  * Sample demonstrating Firebase A/B Testing.
  *
- * A/B Testing works through Remote Config: experiments are defined in the
- * Firebase console and delivered as Remote Config parameters. The ABTesting
- * pod provides the underlying experiment tracking infrastructure.
- *
- * This sample shows how to use Remote Config to read experiment values
- * and act on them, which is the client-side pattern for A/B Testing.
+ * Experiments are defined in the Firebase console and reach the app as Remote Config
+ * parameters, so the client reads a variant like any other Remote Config value.
+ * FirebaseRemoteConfig already depends on FirebaseABTesting, which tracks experiment exposure.
  */
 @Suppress("UNUSED")
 object ABTestingSample {
@@ -59,7 +56,7 @@ object ABTestingSample {
     }
 
     /**
-     * Example: apply experiment-driven UI based on A/B test variant.
+     * Run the callback for the current variant. Unknown variants fall back to [onControl].
      */
     fun applyExperiment(
         experimentKey: String,

@@ -16,7 +16,7 @@ object RemoteConfigSample {
         get() = FIRRemoteConfig.remoteConfig()
 
     /**
-     * Set up Remote Config with developer mode settings.
+     * Set the minimum interval between fetches. Use a low value only during development.
      */
     fun configure(minimumFetchIntervalSeconds: Double = 3600.0) {
         val settings = FIRRemoteConfigSettings()

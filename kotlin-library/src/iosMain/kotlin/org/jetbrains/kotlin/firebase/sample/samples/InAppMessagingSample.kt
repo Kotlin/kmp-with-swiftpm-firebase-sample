@@ -21,9 +21,8 @@ object InAppMessagingSample {
     }
 
     /**
-     * Enable or disable message display.
-     * When suppressed, messages are still fetched but not rendered.
-     * Useful during onboarding flows or time-critical operations.
+     * Suppress or resume message display.
+     * Suppressed messages are still fetched but not shown, which is useful during onboarding.
      */
     fun setMessagesSuppressed(suppressed: Boolean) {
         inAppMessaging.setMessageDisplaySuppressed(suppressed)

@@ -22,7 +22,7 @@ object AppCheckSample {
     }
 
     /**
-     * Get a limited-use App Check token.
+     * Get the cached App Check token, fetching a new one only if it has expired.
      */
     fun getToken(completion: (String?, KMPError?) -> Unit) {
         FIRAppCheck.appCheck().tokenForcingRefresh(false) { token, error ->
@@ -48,7 +48,7 @@ object AppCheckSample {
     }
 
     /**
-     * Get a limited-use token for use with custom backends.
+     * Get a limited-use token for backends that enforce replay protection.
      */
     fun getLimitedUseToken(completion: (String?, KMPError?) -> Unit) {
         FIRAppCheck.appCheck().limitedUseTokenWithCompletion { token, error ->

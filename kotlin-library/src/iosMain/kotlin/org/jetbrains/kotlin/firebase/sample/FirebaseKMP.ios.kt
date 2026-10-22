@@ -7,8 +7,7 @@ import org.jetbrains.kotlin.firebase.sample.services.FirestoreService
 import org.jetbrains.kotlin.firebase.sample.services.MessagingService
 
 /**
- * Internal implementation of FirebaseKMP interface.
- * Delegates to per-service classes for each Firebase product.
+ * [FirebaseKMP] backed by the Firebase iOS SDK. Each Firebase product has its own service class.
  */
 internal class FirebaseKMPImpl : FirebaseKMP {
 

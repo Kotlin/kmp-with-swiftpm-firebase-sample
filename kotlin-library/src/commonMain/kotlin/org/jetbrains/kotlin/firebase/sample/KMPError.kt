@@ -1,15 +1,12 @@
 package org.jetbrains.kotlin.firebase.sample
 
 /**
- * Typealias for an error domain.
- * This allows common code to use a more descriptive type name.
+ * Error domain, such as `NSURLErrorDomain` on iOS.
  */
 typealias KMPErrorDomain = String
 
 /**
- * Represents an error in a Kotlin Multiplatform context.
- * The `KMPError` class is a platform-agnostic abstraction of errors, providing a standardized interface for accessing
- * error details such as domain, code, user information, and localized descriptions.
+ * Platform-independent error. On iOS it wraps an `NSError`.
  */
 @Suppress("UNUSED")
 expect class KMPError {
@@ -24,13 +21,12 @@ expect class KMPError {
     val code: Int
 
     /**
-     * A dictionary containing additional information about the error.
-     * In Kotlin, this is represented as Map<Any?, *>.
+     * Additional information about the error. Keys are `Any?` because `NSError.userInfo` keys are not always strings.
      */
-    val userInfo: Map<Any?, *> // Using Any? for keys to match NSError's flexibility
+    val userInfo: Map<Any?, *>
 
     /**
-     * A localized description of the error, often retrieved from userInfo.
+     * A localized, user-readable description of the error.
      */
     val localizedDescription: String
 }
