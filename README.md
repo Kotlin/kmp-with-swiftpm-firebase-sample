@@ -1,6 +1,13 @@
 [![official project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 # SwiftUI Firebase KMP Sample
 
+> [!WARNING]
+> This CocoaPods version of the sample is no longer maintained. Firebase stops publishing new versions to CocoaPods
+> in October 2026, and Firebase 12 is the last major version there
+> ([Firebase announcement](https://firebase.google.com/docs/ios/cocoapods-deprecation)).
+> The maintained sample uses the Kotlin Gradle Plugin's SwiftPM import instead. It is on the
+> [`master` branch](https://github.com/Kotlin/kmp-with-swiftpm-firebase-sample).
+
 A sample iOS app using SwiftUI and a Kotlin Multiplatform (KMP) library for Firebase integration (Auth, Firestore, Analytics).
 
 ## Core Idea
