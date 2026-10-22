@@ -2,8 +2,8 @@
 # SwiftUI Firebase KMP Sample
 
 An iOS and macOS app with a SwiftUI frontend and a Kotlin Multiplatform library that talks to Firebase.
-The Kotlin library gets the Firebase iOS SDK through the Kotlin Gradle Plugin's SwiftPM import (`swiftPMDependencies {}`),
-and both the library and the SwiftUI previews can run against a mock instead of Firebase.
+The Kotlin library gets the Firebase Apple SDK through the Kotlin Gradle Plugin's SwiftPM import
+(`swiftPMDependencies {}`), and both the library and the SwiftUI previews can run against a mock instead of Firebase.
 
 The app supports email/password sign-up, sign-in and sign-out, stores user profiles in Firestore, and logs events to
 Firebase Analytics.
@@ -40,6 +40,8 @@ The bundle ID ends in `.iosApp` because it has to match the app registered in `G
 3. Open `appleApp/appleApp.xcodeproj` in Xcode, pick an iOS or macOS destination, and run the app.
    The *Compile Kotlin Framework* build phase builds the Kotlin library with
    `./gradlew :kotlin-library:embedAndSignAppleFrameworkForXcode`.
+4. To sign in on a Mac, select your development team and add the Keychain Sharing capability to the `appleApp`
+   target. Firebase Auth on macOS keeps the signed-in user in the keychain.
 
 ## Changing SwiftPM dependencies
 

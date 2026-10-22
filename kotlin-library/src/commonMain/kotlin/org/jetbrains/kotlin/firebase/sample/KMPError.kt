@@ -1,12 +1,12 @@
 package org.jetbrains.kotlin.firebase.sample
 
 /**
- * Error domain, such as `NSURLErrorDomain` on iOS.
+ * Error domain, such as `NSURLErrorDomain` on Apple platforms.
  */
 typealias KMPErrorDomain = String
 
 /**
- * Platform-independent error. On iOS it wraps an `NSError`.
+ * Platform-independent error. On Apple platforms it wraps an `NSError`.
  */
 @Suppress("UNUSED")
 expect class KMPError {

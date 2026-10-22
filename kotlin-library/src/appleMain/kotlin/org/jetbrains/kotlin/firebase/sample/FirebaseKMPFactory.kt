@@ -6,7 +6,7 @@ package org.jetbrains.kotlin.firebase.sample
 @Suppress("UNUSED")
 object FirebaseKMPFactory {
     /**
-     * Returns the implementation backed by the Firebase iOS SDK.
+     * Returns the implementation backed by the Firebase Apple SDK.
      */
     fun firebase(): FirebaseKMP = FirebaseKMPImpl()
 
