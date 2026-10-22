@@ -43,13 +43,13 @@ enum FirebaseServiceError: LocalizedError {
 /// Views observe `currentUser`, `isLoading` and `errorMessage`; every Firebase call goes through
 /// the injected `FirebaseKMP`, so previews can swap in the Kotlin mock.
 @Observable
-@MainActor
 final class FirebaseService {
     private(set) var currentUser: KMPFirebaseUser?
     private(set) var isLoading = false
     var errorMessage: String?
 
     var isSignedIn: Bool { currentUser != nil }
+    var currentUserID: String? { currentUser?.uid }
 
     @ObservationIgnored private let kmp: FirebaseKMP
 

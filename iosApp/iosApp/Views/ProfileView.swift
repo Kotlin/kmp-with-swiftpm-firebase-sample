@@ -24,7 +24,7 @@ struct ProfileView: View {
                     }
                 }
         }
-        .task(id: firebase.currentUser?.uid) {
+        .task(id: firebase.currentUserID) {
             await load()
         }
     }
