@@ -3,7 +3,7 @@ package org.jetbrains.kotlin.firebase.sample.samples
 import swiftPMImport.org.jetbrains.kotlin.firebase.sample.kotlin.library.FAIBChat
 import swiftPMImport.org.jetbrains.kotlin.firebase.sample.kotlin.library.FAIBGenerativeModel
 import org.jetbrains.kotlin.firebase.sample.KMPError
-import org.jetbrains.kotlin.firebase.sample.toKMPError
+import org.jetbrains.kotlin.firebase.sample.complete
 
 /**
  * Sample demonstrating Firebase AI Logic (Gemini) from Kotlin.
@@ -26,26 +26,14 @@ object AISample {
      * Generate a text response for a single prompt.
      */
     fun generateText(prompt: String, completion: (String?, KMPError?) -> Unit) {
-        model.generateContent(prompt) { text, error ->
-            if (error != null) {
-                completion(null, error.toKMPError())
-            } else {
-                completion(text, null)
-            }
-        }
+        model.generateContent(prompt) { text, error -> completion.complete(text, error) }
     }
 
     /**
      * Count the tokens a prompt would consume.
      */
     fun countTokens(prompt: String, completion: (Long?, KMPError?) -> Unit) {
-        model.countTokens(prompt) { tokens, error ->
-            if (error != null) {
-                completion(null, error.toKMPError())
-            } else {
-                completion(tokens, null)
-            }
-        }
+        model.countTokens(prompt) { tokens, error -> completion.complete(tokens, error) }
     }
 
     /**
@@ -57,12 +45,6 @@ object AISample {
      * Send a message within a chat started by [startChat].
      */
     fun sendMessage(chat: FAIBChat, message: String, completion: (String?, KMPError?) -> Unit) {
-        chat.sendMessage(message) { reply, error ->
-            if (error != null) {
-                completion(null, error.toKMPError())
-            } else {
-                completion(reply, null)
-            }
-        }
+        chat.sendMessage(message) { reply, error -> completion.complete(reply, error) }
     }
 }
