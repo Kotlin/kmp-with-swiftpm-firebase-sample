@@ -53,6 +53,9 @@ final class FirebaseService {
 
     private let kmp: FirebaseKMP
 
+    /// A profile from sign-up that couldn't be written yet. `fetchProfile()` retries the write.
+    @ObservationIgnored private var unsavedProfile: UserProfile?
+
     init(kmp: FirebaseKMP) {
         self.kmp = kmp
     }
@@ -78,8 +81,15 @@ final class FirebaseService {
                 throw FirebaseServiceError.missingUser
             }
 
+            // The account exists at this point, so a failed profile write doesn't fail the sign-up.
+            // The profile screen shows the error and retries the write when it loads the profile.
             let profile = UserProfile(displayName: displayName, email: email, createdAt: .now)
-            try await bridge { kmp.saveUser(userId: userId, userData: profile.document, completion: $0) }
+            do {
+                try await save(profile, userId: userId)
+            } catch {
+                unsavedProfile = profile
+                kmp.logEvent(name: "profile_save_failure", parameters: ["error": error.localizedDescription])
+            }
 
             kmp.setUserId(userId: userId)
             kmp.setUserProperty(name: "user_type", value: "new_user")
@@ -90,16 +100,26 @@ final class FirebaseService {
     func signOut() {
         kmp.logEvent(name: "sign_out", parameters: nil)
         errorMessage = kmp.signOut() ? nil : "Couldn't sign out. Please try again."
+        unsavedProfile = nil
         refreshAuthState()
     }
 
     // MARK: - Firestore
 
     /// Loads the signed-in user's profile, or returns `nil` when no profile document exists.
+    /// A profile that sign-up couldn't write is written first.
     func fetchProfile() async throws -> UserProfile? {
         guard let userId = currentUser?.uid else { return nil }
+        if let unsavedProfile {
+            try await save(unsavedProfile, userId: userId)
+            self.unsavedProfile = nil
+        }
         let document = try await bridge { kmp.getUser(userId: userId, completion: $0) }
         return document.map(UserProfile.init(document:))
+    }
+
+    private func save(_ profile: UserProfile, userId: String) async throws {
+        try await bridge { kmp.saveUser(userId: userId, userData: profile.document, completion: $0) }
     }
 
     // MARK: - Helpers
