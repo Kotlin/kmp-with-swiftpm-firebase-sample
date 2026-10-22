@@ -23,7 +23,7 @@ Firebase Analytics.
   SwiftPM import uses cinterop, which only sees Objective-C compatible declarations, so a wrapper like this is how
   Kotlin code can call a Swift-only library. The module adds it with `localSwiftPackage(...)`.
 
-`iosApp` is the SwiftUI app. It requires iOS 18.
+`appleApp` is the SwiftUI app. It requires iOS 18.
 
 * `FirebaseService.swift` is an `@Observable` model that turns the callback-based Kotlin API into `async` functions.
 * `Views/` has the login and registration screen (`AuthView`) and the profile screen (`ProfileView`).
@@ -33,9 +33,9 @@ Firebase Analytics.
 ## Setup
 
 1. Install Xcode 26.2 or later (Firebase 13 requires it) and IntelliJ IDEA or Android Studio. You need a Mac.
-2. Create a Firebase project, register an iOS app, and put its `GoogleService-Info.plist` in `iosApp/iosApp`.
+2. Create a Firebase project, register an iOS app, and put its `GoogleService-Info.plist` in `appleApp/appleApp`.
    Enable Email/Password sign-in and set up Firestore security rules.
-3. Open `iosApp/iosApp.xcodeproj` in Xcode and run the app. The *Compile Kotlin Framework* build phase builds the
+3. Open `appleApp/appleApp.xcodeproj` in Xcode and run the app. The *Compile Kotlin Framework* build phase builds the
    Kotlin library with `./gradlew :kotlin-library:embedAndSignAppleFrameworkForXcode`.
 
 ## Changing SwiftPM dependencies
