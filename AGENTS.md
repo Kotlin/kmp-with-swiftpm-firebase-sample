@@ -35,8 +35,8 @@ xcodebuild build -project appleApp/appleApp.xcodeproj -scheme appleApp -destinat
 ```
 
 After you change `swiftPMDependencies {}`, the first Xcode build regenerates `KotlinMultiplatformLinkedPackage` and
-fails with "Synthetic linkage package files changed during the build". Build again, then commit the regenerated files
-and the lock files.
+fails with "Synthetic linkage package files changed during the build" and "Please go to File -> Package -> Resolve
+Package Versions in Xcode". Build again, then commit the regenerated files and the lock files.
 
 Imported Objective-C APIs live in the Kotlin package `swiftPMImport.org.jetbrains.kotlin.firebase.sample.kotlin.library`.
 Before you write Kotlin against one, check its imported signature. Selector names, nullability and Kotlin parameter

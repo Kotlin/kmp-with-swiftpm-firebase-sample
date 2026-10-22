@@ -46,6 +46,7 @@ The bundle ID ends in `.iosApp` because it has to match the app registered in `G
 ## Changing SwiftPM dependencies
 
 After you edit `swiftPMDependencies {}` in `kotlin-library/build.gradle.kts`, the next Xcode build regenerates
-`KotlinMultiplatformLinkedPackage` and stops with *"Please go to File -> Package -> Resolve Package Versions"*.
-Resolve the packages or build again, then commit the regenerated files along with
-`.swiftpm-locks/default/swiftImport/Package.resolved`, which pins the package versions used on the Kotlin side.
+`KotlinMultiplatformLinkedPackage` and fails with *"Synthetic linkage package files changed during the build"* and
+*"Please go to File -> Package -> Resolve Package Versions in Xcode"*. Resolve the packages or build again, then commit
+the regenerated files along with `.swiftpm-locks/default/swiftImport/Package.resolved`, which pins the package versions
+used on the Kotlin side.
