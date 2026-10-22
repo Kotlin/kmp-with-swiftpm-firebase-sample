@@ -51,7 +51,7 @@ final class FirebaseService {
     var isSignedIn: Bool { currentUser != nil }
     var currentUserID: String? { currentUser?.uid }
 
-    @ObservationIgnored private let kmp: FirebaseKMP
+    private let kmp: FirebaseKMP
 
     init(kmp: FirebaseKMP) {
         self.kmp = kmp
