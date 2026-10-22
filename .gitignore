@@ -16,4 +16,12 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-.swiftpm-locks/
+
+# SwiftPM / SourceKit-LSP build output (e.g. local Swift packages opened in an IDE)
+.build/
+.swiftpm/
+
+# SwiftPM import (KGP): commit only the lock file; the synthetic package is regenerated
+# on every build and the checkout is ignored by the plugin's own .gitignore
+.swiftpm-locks/*/swiftImport/*
+!.swiftpm-locks/*/swiftImport/Package.resolved
