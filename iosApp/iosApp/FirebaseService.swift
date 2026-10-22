@@ -1,180 +1,187 @@
-import SwiftUI
-import Combine
+import Foundation
+import Observation
 import KotlinLibrary
 
-// Ensure KMP types are correctly aliased or used with their module prefix.
 typealias KMPFirebaseUser = KotlinLibrary.FirebaseUser
-typealias KMPError = KotlinLibrary.KMPError
 
-class FirebaseService: ObservableObject {
-    private let kmp: FirebaseKMP // Using the interface provided from KotlinLibrary
+/// Profile stored in the Firestore `users/{uid}` document.
+struct UserProfile: Equatable {
+    var displayName: String
+    var email: String
+    var photoURL: URL?
+    var createdAt: Date?
+}
 
-    // MARK: - Published Properties for SwiftUI
-    @Published var isSignedIn: Bool = false
-    @Published var currentUser: KMPFirebaseUser? = nil
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String? = nil
-
-    // MARK: - Initialization
-    init(kmpInstance: FirebaseKMP) {
-        self.kmp = kmpInstance
+extension UserProfile {
+    init(document: [String: Any]) {
+        displayName = document["displayName"] as? String ?? ""
+        email = document["email"] as? String ?? ""
+        photoURL = (document["photoURL"] as? String).flatMap(URL.init(string:))
+        createdAt = (document["createdAt"] as? TimeInterval).map(Date.init(timeIntervalSince1970:))
     }
 
-    // MARK: - Configuration
+    var document: [String: Any] {
+        var document: [String: Any] = ["displayName": displayName, "email": email]
+        if let photoURL { document["photoURL"] = photoURL.absoluteString }
+        if let createdAt { document["createdAt"] = createdAt.timeIntervalSince1970 }
+        return document
+    }
+}
+
+enum FirebaseServiceError: LocalizedError {
+    case missingUser
+
+    var errorDescription: String? {
+        switch self {
+        case .missingUser: "The account was created, but no user was returned."
+        }
+    }
+}
+
+/// Bridges the callback-based `FirebaseKMP` API of the Kotlin library to SwiftUI.
+///
+/// Views observe `currentUser`, `isLoading` and `errorMessage`; every Firebase call goes through
+/// the injected `FirebaseKMP`, so previews can swap in the Kotlin mock.
+@Observable
+@MainActor
+final class FirebaseService {
+    private(set) var currentUser: KMPFirebaseUser?
+    private(set) var isLoading = false
+    var errorMessage: String?
+
+    var isSignedIn: Bool { currentUser != nil }
+
+    @ObservationIgnored private let kmp: FirebaseKMP
+
+    init(kmp: FirebaseKMP) {
+        self.kmp = kmp
+    }
+
     func configure() {
         kmp.configure()
-        self.updateAuthStatusFromKMP()
+        refreshAuthState()
     }
 
     // MARK: - Authentication
-    private func updateAuthStatusFromKMP() {
-        // Ensure all updates to @Published properties are on the main thread
-        DispatchQueue.main.async {
-            let signedInStatus = self.kmp.isUserSignedIn()
-            let kmpCurrentUser = self.kmp.getCurrentUser()
 
-            // Check if the status or user actually changed to prevent redundant UI updates
-            // and potential issues if called rapidly.
-            if self.isSignedIn != signedInStatus || self.currentUser?.uid != kmpCurrentUser?.uid {
-                self.isSignedIn = signedInStatus
-                self.currentUser = kmpCurrentUser
-                if !self.isSignedIn {
-                    self.currentUser = nil // Explicitly clear if not signed in
-                }
-                // Resetting isLoading and errorMessage here might be too broad.
-                // Consider resetting them more specifically within the methods that set them.
-                // For now, keeping it as it was but wrapped in main.async.
-                // self.isLoading = false // Let individual methods manage their isLoading state
-                // self.errorMessage = nil
-            }
+    func signIn(email: String, password: String) async {
+        await performAuthAction(failureEvent: "login_failure") {
+            _ = try await bridge { kmp.signIn(email: email, password: password, completion: $0) }
+            kmp.logEvent(name: "login", parameters: ["method": "email"])
         }
     }
 
-    func signIn(email: String, password: String) async throws -> KMPFirebaseUser? {
-        // Set loading and error message on the main thread
-        await MainActor.run {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-
-        defer {
-            Task { @MainActor in self.isLoading = false }
-        }
-
-        return try await withCheckedThrowingContinuation { continuation in
-            kmp.signIn(email: email, password: password) { kmpUser, kmpError in
-                if let error = kmpError {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                    }
-                    continuation.resume(throwing: error.nsError)
-                } else {
-                    // updateAuthStatusFromKMP will dispatch its own updates to main
-                    self.updateAuthStatusFromKMP()
-                    continuation.resume(returning: kmpUser)
-                }
+    func signUp(email: String, password: String, displayName: String) async {
+        await performAuthAction(failureEvent: "sign_up_failure") {
+            let user = try await bridge { kmp.signUp(email: email, password: password, completion: $0) }
+            guard let userId = (user ?? kmp.getCurrentUser())?.uid else {
+                throw FirebaseServiceError.missingUser
             }
-        }
-    }
 
-    func signUp(email: String, password: String) async throws -> KMPFirebaseUser? {
-        await MainActor.run {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
+            let profile = UserProfile(displayName: displayName, email: email, createdAt: .now)
+            try await bridge { kmp.saveUser(userId: userId, userData: profile.document, completion: $0) }
 
-        defer {
-            Task { @MainActor in self.isLoading = false }
-        }
-
-        return try await withCheckedThrowingContinuation { continuation in
-            kmp.signUp(email: email, password: password) { kmpUser, kmpError in
-                if let error = kmpError {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                    }
-                    continuation.resume(throwing: error.nsError)
-                } else {
-                    self.updateAuthStatusFromKMP()
-                    continuation.resume(returning: kmpUser)
-                }
-            }
+            kmp.setUserId(userId: userId)
+            kmp.setUserProperty(name: "user_type", value: "new_user")
+            kmp.logEvent(name: "sign_up", parameters: ["method": "email"])
         }
     }
 
     func signOut() {
-        _ = kmp.signOut()
-        // updateAuthStatusFromKMP handles its own dispatching to main thread
-        self.updateAuthStatusFromKMP()
+        kmp.logEvent(name: "sign_out", parameters: nil)
+        errorMessage = kmp.signOut() ? nil : "Couldn't sign out. Please try again."
+        refreshAuthState()
     }
 
-    func getCurrentUserFromService() -> KMPFirebaseUser? {
-        return kmp.getCurrentUser()
+    // MARK: - Firestore
+
+    /// Loads the signed-in user's profile, or returns `nil` when no profile document exists.
+    func fetchProfile() async throws -> UserProfile? {
+        guard let userId = currentUser?.uid else { return nil }
+        let document = try await bridge { kmp.getUser(userId: userId, completion: $0) }
+        return document.map(UserProfile.init(document:))
     }
 
-    func isUserCurrentlySignedIn() -> Bool {
-        return kmp.isUserSignedIn()
-    }
+    // MARK: - Helpers
 
-    // MARK: - Firestore Operations
-    func saveUser(userId: String, userData: [String: Any]) async throws {
-        await MainActor.run {
-            self.isLoading = true // Consider a more specific loading state if needed
-            self.errorMessage = nil
-        }
-
+    /// Runs an auth flow with shared loading/error handling.
+    ///
+    /// The published auth state is refreshed only once the whole flow finishes, so the UI doesn't
+    /// switch to the profile screen while sign-up is still writing the profile document.
+    private func performAuthAction(failureEvent: String, _ action: () async throws -> Void) async {
+        isLoading = true
+        errorMessage = nil
         defer {
-            Task { @MainActor in self.isLoading = false } // Reset general loading, or use specific one
+            isLoading = false
+            refreshAuthState()
         }
 
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) -> Void in
-            kmp.saveUser(userId: userId, userData: userData) { kmpError in
-                if let error = kmpError {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                    }
+        do {
+            try await action()
+        } catch {
+            errorMessage = error.localizedDescription
+            kmp.logEvent(name: failureEvent, parameters: ["error": error.localizedDescription])
+        }
+    }
+
+    private func refreshAuthState() {
+        currentUser = kmp.isUserSignedIn() ? kmp.getCurrentUser() : nil
+    }
+
+    private func bridge<Value>(
+        _ start: (@escaping @Sendable (Value?, KMPError?) -> Void) -> Void
+    ) async throws -> Value? {
+        try await withCheckedThrowingContinuation { continuation in
+            start { value, error in
+                if let error {
                     continuation.resume(throwing: error.nsError)
                 } else {
-                    continuation.resume(returning: ())
+                    continuation.resume(returning: value)
                 }
             }
         }
     }
 
-    func getUser(userId: String) async throws -> [String: Any]? {
-        await MainActor.run {
-            self.isLoading = true // Consider a more specific loading state
-            self.errorMessage = nil
-        }
-
-        defer {
-            Task { @MainActor in self.isLoading = false }
-        }
-
-        return try await withCheckedThrowingContinuation { continuation in
-            kmp.getUser(userId: userId) { data, kmpError in
-                if let error = kmpError {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                    }
+    private func bridge(_ start: (@escaping @Sendable (KMPError?) -> Void) -> Void) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            start { error in
+                if let error {
                     continuation.resume(throwing: error.nsError)
                 } else {
-                    continuation.resume(returning: data)
+                    continuation.resume()
                 }
             }
         }
-    }
-
-    // MARK: - Analytics (These methods don't typically update @Published properties directly)
-    func logEvent(name: String, parameters: [String: Any]? = nil) {
-        kmp.logEvent(name: name, parameters: parameters)
-    }
-
-    func setUserProperty(name: String, value: String) {
-        kmp.setUserProperty(name: name, value: value)
-    }
-
-    func setAnalyticsUserId(userId: String) {
-        kmp.setUserId(userId: userId)
     }
 }
+
+// MARK: - Previews
+
+#if DEBUG
+extension FirebaseService {
+    static let previewUser = KMPFirebaseUser(
+        uid: "preview-user",
+        email: "kate.bell@example.com",
+        displayName: "Kate Bell",
+        photoURL: nil
+    )
+
+    static let previewProfile = UserProfile(
+        displayName: "Kate Bell",
+        email: "kate.bell@example.com",
+        createdAt: .now.addingTimeInterval(-30 * 86_400)
+    )
+
+    /// A service backed by the Kotlin `MockFirebaseKMP`, optionally signed in with a stored profile.
+    static func preview(user: KMPFirebaseUser? = nil, profile: UserProfile? = nil) -> FirebaseService {
+        let mock = FirebaseKMPFactory.shared.mock()
+        mock.signedInUserOverride = user
+        if let user, let profile {
+            mock.saveUser(userId: user.uid, userData: profile.document) { _ in }
+        }
+        let service = FirebaseService(kmp: mock)
+        service.configure()
+        return service
+    }
+}
+#endif
